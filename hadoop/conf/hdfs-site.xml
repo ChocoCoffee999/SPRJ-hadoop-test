@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<configuration>
+  <!-- 복제 계수 -->
+  <property>
+    <name>dfs.replication</name>
+    <value>2</value>
+  </property>
+
+  <!-- NameNode 바인딩 -->
+  <property>
+    <name>dfs.namenode.rpc-address</name>
+    <value>0.0.0.0:8020</value>
+  </property>
+  <property>
+    <name>dfs.namenode.http-address</name>
+    <value>0.0.0.0:9870</value>
+  </property>
+
+  <!-- DataNode 바인딩 (각 워커에서 host network로 뜸) -->
+  <property>
+    <name>dfs.datanode.address</name>
+    <value>0.0.0.0:9866</value>
+  </property>
+  <property>
+    <name>dfs.datanode.http.address</name>
+    <value>0.0.0.0:9864</value>
+  </property>
+  <property>
+    <name>dfs.datanode.ipc.address</name>
+    <value>0.0.0.0:9867</value>
+  </property>
+
+  <!-- 호스트명(실제 호스트 IP)로 통신 -->
+  <property>
+    <name>dfs.client.use.datanode.hostname</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>dfs.datanode.use.datanode.hostname</name>
+    <value>true</value>
+  </property>
+</configuration>

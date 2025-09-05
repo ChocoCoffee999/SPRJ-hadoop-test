@@ -1,0 +1,75 @@
+services:
+  nn:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.1.3-java8
+    container_name: nn
+    hostname: nn
+    networks: host
+    environment:
+      - CLUSTER_NAME=${CLUSTER_NAME}
+      - CORE_CONF_fs_defaultFS=${HDFS_NAMENODE_URI}
+      - HDFS_CONF_dfs_replication=${DFS_REPLICATION}
+    volumes:
+      - ./hadoop/conf:/opt/hadoop/etc/hadoop
+      - namenode:/hadoop/dfs/name
+      - ./hadoop/data:/data    # Tags.xml 놓는 곳
+    restart: unless-stopped
+    ports:
+     - "8020:8020"
+
+  dn:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.1.3-java8
+    container_name: dn
+    hostname: dn
+    networks: host
+    depends_on: [nn]
+    environment:
+      - CORE_CONF_fs_defaultFS=${HDFS_NAMENODE_URI}
+      - HDFS_CONF_dfs_replication=${DFS_REPLICATION}
+      - SERVICE_PRECONDITION=${HDFS_NAMENODE_IP}:9870
+    volumes:
+      - ./hadoop/conf:/opt/hadoop/etc/hadoop
+      - datanode:/hadoop/dfs/data
+    restart: unless-stopped
+
+  spark-master:
+    image: bitnami/spark:3.5
+    container_name: spark-master
+    hostname: spark-master
+    networks: host
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=${SPARK_MASTER_HOST:-spark-master}
+      - POSTGRES_HOST=${POSTGRES_HOST:-pg16}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+      - POSTGRES_USER=${POSTGRES_USER:-ssafy}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-ssafy}
+      - POSTGRES_TABLE=${POSTGRES_TABLE:-tag}
+      - HDFS_INPUT=${HDFS_INPUT:-hdfs://nn:8020/data/Tags.xml}
+    volumes:
+      - ./spark/conf:/opt/bitnami/spark/conf
+      - ./app/target:/app
+    ports: 
+      - "7077:7077"
+      - "8080:8080"
+    restart: unless-stopped
+
+  spark-worker:
+    image: bitnami/spark:3.5
+    container_name: spark-worker
+    hostname: spark-worker
+    networks: host
+    depends_on: [spark-master]
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_HOST=${SPARK_MASTER_HOST:-spark-master}
+      - SPARK_WORKER_CORES=${SPARK_WORKER_CORES}
+      - SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}
+    volumes:
+      - ./spark/conf:/opt/bitnami/spark/conf
+      - ./app/target:/app
+    restart: unless-stopped
+
+volumes:
+  namenode:
+  datanode:

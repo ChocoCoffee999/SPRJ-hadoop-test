@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: pg16
+    restart: unless-stopped
+    networks: host
+    environment:
+      POSTGRES_PASSWORD: supersecret
+      POSTGRES_DB: ${DBNAME:-b101}
+      APP_USER: ${USER:-ssafy}
+      APP_PASSWORD: ${PASSWORD:-ssafy}
+      APP_DB: ${DBNAME:-b101}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
