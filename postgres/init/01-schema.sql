@@ -4,6 +4,7 @@ create table member (
   id           bigint not null,
   email        varchar(1024),
   password     varchar(1024),
+  name         varchar(1024),
   constraint pk_member primary key (id)
 );
 
@@ -17,7 +18,7 @@ create table tag_date (
 
 create table answer (
   id             bigint     not null,
-  creation_date  timestamp,
+  created_date  timestamp,
   score          integer,
   body           TEXT,
   post_id      bigint     not null,
@@ -27,7 +28,7 @@ create table answer (
 create table tag (
   id    bigint       not null,
   name  varchar(50),
-  post_count   bigint,
+  total_post_count   bigint,
   constraint pk_tag primary key (id)
 );
 
@@ -46,7 +47,7 @@ create table member_tag (
 create table post (
   id                   bigint     not null,
   accepted_answer_id   bigint,
-  creation_date        timestamp,
+  created_date        timestamp,
   score                integer,
   view_count           integer,
   body                 TEXT,
@@ -78,6 +79,9 @@ alter table answer
 alter table post
   add constraint fk_post_accepted_answer
   foreign key (accepted_answer_id) references answer (id);
+
+ALTER TABLE tag_date
+  ADD CONSTRAINT uq_tag_date_year_tag UNIQUE (year, tag_id);
 
 create index if not exists idx_tag_and_post_tag_id on tag_and_post(tag_id);
 create index if not exists idx_tag_and_post_post_id on tag_and_post(post_id);
