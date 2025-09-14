@@ -35,10 +35,11 @@ services:
       - SPARK_WORKER_WEBUI_PORT=${SPARK_WORKER_WEBUI} # 8081
       - HADOOP_CONF_DIR=/opt/hadoop-conf
     volumes:
-      - ./hadoop/conf:/opt/hadoop-conf
+      - spark_worker_conf:/opt/hadoop-conf
       - ./spark/conf/worker:/opt/bitnami/spark/conf           # spark-defaults.conf 여기
+      - ./spark/conf/worker/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
     ports:
-      - "${SPARK_WORKER_WEBUI}:${SPARK_WORKER_WEBUI}"   # 8081
+      - "${SPARK_WORKER_WEBUI}:${SPAwjdtnRK_WORKER_WEBUI}"   # 8081
       - "${SPARK_SHUFFLE_PORT}:${SPARK_SHUFFLE_PORT}"   # 7337
       - "${SPARK_BLOCKMANAGER_PORT}:${SPARK_BLOCKMANAGER_PORT}" # 6060
       - "${SPARK_DRIVER_BM_PORT}:${SPARK_DRIVER_BM_PORT}"       # 6061
@@ -48,3 +49,4 @@ services:
 
 volumes:
   datanode:
+  spark_worker_conf:
