@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
 
   spark-worker:
-    image: bitnami/spark:3.5
+    image: bitnami/spark:3.5.6
     container_name: spark-worker
     hostname: spark-worker
     environment:
@@ -37,9 +37,8 @@ services:
     volumes:
       - spark_worker_conf:/opt/hadoop-conf
       - ./spark/conf/worker:/opt/bitnami/spark/conf           # spark-defaults.conf 여기
-      - ./spark/conf/worker/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
     ports:
-      - "${SPARK_WORKER_WEBUI}:${SPAwjdtnRK_WORKER_WEBUI}"   # 8081
+      - "${SPARK_WORKER_WEBUI}:${SPARK_WORKER_WEBUI}"   # 8081
       - "${SPARK_SHUFFLE_PORT}:${SPARK_SHUFFLE_PORT}"   # 7337
       - "${SPARK_BLOCKMANAGER_PORT}:${SPARK_BLOCKMANAGER_PORT}" # 6060
       - "${SPARK_DRIVER_BM_PORT}:${SPARK_DRIVER_BM_PORT}"       # 6061
@@ -49,4 +48,3 @@ services:
 
 volumes:
   datanode:
-  spark_worker_conf:
