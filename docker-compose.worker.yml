@@ -7,10 +7,11 @@ services:
     hostname: dn2
     environment:
       - CORE_CONF_fs_defaultFS=hdfs://${MASTER_IP}:8020
+      - HDFS_CONF_dfs_datanode_use_datanode_hostname=true
+      - HDFS_CONF_dfs_datanode_hostname=192.168.0.2
       - HDFS_CONF_dfs_datanode_address=0.0.0.0:9866
       - HDFS_CONF_dfs_datanode_http_address=0.0.0.0:9864
       - HDFS_CONF_dfs_datanode_ipc_address=0.0.0.0:9867
-      - HDFS_CONF_dfs_namenode_datanode_registration_ip_hostname_check=false
     volumes:
       - ./hadoop/conf:/opt/hadoop/etc/hadoop
       - datanode:/hadoop/dfs/data
