@@ -3,7 +3,7 @@ services:
     image: postgres:16
     container_name: pg16
     restart: unless-stopped
-    networks: host
+    networks: [hadoopnet]
     environment:
       POSTGRES_PASSWORD: supersecret
       POSTGRES_DB: ${DBNAME:-b101}
@@ -18,3 +18,5 @@ services:
 
 volumes:
   pgdata:
+
+networks: { hadoopnet: {} }

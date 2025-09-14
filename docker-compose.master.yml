@@ -3,73 +3,98 @@ services:
     image: bde2020/hadoop-namenode:2.0.0-hadoop3.1.3-java8
     container_name: nn
     hostname: nn
-    networks: host
+    networks: [hadoopnet]
     environment:
       - CLUSTER_NAME=${CLUSTER_NAME}
       - CORE_CONF_fs_defaultFS=${HDFS_NAMENODE_URI}
       - HDFS_CONF_dfs_replication=${DFS_REPLICATION}
+      - HDFS_CONF_dfs_namenode_datanode_registration_ip___hostname___check=false
     volumes:
       - ./hadoop/conf:/opt/hadoop/etc/hadoop
       - namenode:/hadoop/dfs/name
       - ./hadoop/data:/data    # Tags.xml 놓는 곳
     restart: unless-stopped
-    ports:
-     - "8020:8020"
+    ports: 
+      - "8020:8020"
+      - "9870:9870"
 
   dn:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.1.3-java8
     container_name: dn
     hostname: dn
-    networks: host
+    networks: [hadoopnet]
     depends_on: [nn]
     environment:
       - CORE_CONF_fs_defaultFS=${HDFS_NAMENODE_URI}
-      - HDFS_CONF_dfs_replication=${DFS_REPLICATION}
-      - SERVICE_PRECONDITION=${HDFS_NAMENODE_IP}:9870
+      - HDFS_CONF_dfs_datanode_address=0.0.0.0:9866
+      - HDFS_CONF_dfs_datanode_http_address=0.0.0.0:9864
+      - HDFS_CONF_dfs_datanode_ipc_address=0.0.0.0:9867
     volumes:
       - ./hadoop/conf:/opt/hadoop/etc/hadoop
       - datanode:/hadoop/dfs/data
+    ports:
+      - "9864:9864"
+      - "9866:9866"
+      - "9867:9867"
     restart: unless-stopped
 
   spark-master:
-    image: bitnami/spark:3.5
+    image: bitnami/spark:latest
     container_name: spark-master
     hostname: spark-master
-    networks: host
+    networks: [hadoopnet]
     environment:
       - SPARK_MODE=master
-      - SPARK_MASTER_HOST=${SPARK_MASTER_HOST:-spark-master}
-      - POSTGRES_HOST=${POSTGRES_HOST:-pg16}
-      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
-      - POSTGRES_DB=${POSTGRES_DB:-postgres}
-      - POSTGRES_USER=${POSTGRES_USER:-ssafy}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-ssafy}
-      - POSTGRES_TABLE=${POSTGRES_TABLE:-tag}
-      - HDFS_INPUT=${HDFS_INPUT:-hdfs://nn:8020/data/Tags.xml}
+      - SPARK_PUBLIC_DNS=${SPARK_PUBLIC_DNS}
+      - SPARK_MASTER_HOST=${SPARK_MASTER_HOST}
+      - SPARK_MASTER_PORT=${SPARK_MASTER_PORT}
+      - HADOOP_CONF_DIR=/opt/hadoop-conf
     volumes:
-      - ./spark/conf:/opt/bitnami/spark/conf
-      - ./app/target:/app
-    ports: 
-      - "7077:7077"
-      - "8080:8080"
+      - ./spark/conf/master:/opt/bitnami/spark/conf
+      - ./hadoop/conf:/opt/hadoop-conf
+    ports:
+      - "${SPARK_MASTER_PORT}:${SPARK_MASTER_PORT}"  # 7077
+      - "${SPARK_MASTER_WEBUI}:8080"
+      - "${SPARK_UI_PORT}:4040"                      # 드라이버 UI (로컬 제출 시)
+      - "${SPARK_DRIVER_RPC_PORT}:7079"
+    depends_on: [nn, dn]
     restart: unless-stopped
 
-  spark-worker:
-    image: bitnami/spark:3.5
-    container_name: spark-worker
-    hostname: spark-worker
-    networks: host
-    depends_on: [spark-master]
+  spark-worker-local:
+    image: bitnami/spark:latest
+    container_name: spark-worker-local
+    hostname: spark-worker-local
+    networks: [hadoopnet]
     environment:
       - SPARK_MODE=worker
-      - SPARK_MASTER_HOST=${SPARK_MASTER_HOST:-spark-master}
+      - SPARK_MASTER_URL=spark://${SPARK_MASTER_HOST}:${SPARK_MASTER_PORT}
+      - SPARK_LOCAL_IP=${SPARK_LOCAL_IP}
+      - SPARK_PUBLIC_DNS=${SPARK_PUBLIC_DNS}
       - SPARK_WORKER_CORES=${SPARK_WORKER_CORES}
       - SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}
+      - SPARK_WORKER_PORT=${SPARK_WORKER_PORT}
+      - SPARK_WORKER_WEBUI_PORT=${SPARK_WORKER_WEBUI}
+      - HADOOP_CONF_DIR=/opt/hadoop-conf
     volumes:
-      - ./spark/conf:/opt/bitnami/spark/conf
-      - ./app/target:/app
+      - ./spark/conf/worker:/opt/bitnami/spark/conf
+      - ./hadoop/conf:/opt/hadoop-conf
+    ports:
+      - "${SPARK_WORKER_WEBUI}:${SPARK_WORKER_WEBUI}"   # 8081
+      - "${SPARK_SHUFFLE_PORT}:${SPARK_SHUFFLE_PORT}"   # 7337
+      - "${SPARK_BLOCKMANAGER_PORT}:${SPARK_BLOCKMANAGER_PORT}" # 6060
+      - "${SPARK_DRIVER_BM_PORT}:${SPARK_DRIVER_BM_PORT}"       # 6061
+      - "${SPARK_EXECUTOR_RPC_PORT}:${SPARK_EXECUTOR_RPC_PORT}" # 6062
+      - "${SPARK_WORKER_PORT}:${SPARK_WORKER_PORT}"             # 7078
+    depends_on: [spark-master]
+    deploy:
+      resources:
+        limits:
+          cpus: "2"          # 마스터에서 워커는 작게
+          memory: 14g
     restart: unless-stopped
 
 volumes:
   namenode:
   datanode:
+
+networks: { hadoopnet: {} }
