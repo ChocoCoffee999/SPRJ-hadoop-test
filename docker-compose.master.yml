@@ -39,7 +39,7 @@ services:
     restart: unless-stopped
 
   spark-master:
-    image: bitnami/spark:latest
+    image: bitnami/spark:3.5.6
     container_name: spark-master
     hostname: spark-master
     networks: [hadoopnet]
@@ -61,7 +61,7 @@ services:
     restart: unless-stopped
 
   spark-worker-local:
-    image: bitnami/spark:latest
+    image: bitnami/spark:3.5.6
     container_name: spark-worker-local
     hostname: spark-worker-local
     networks: [hadoopnet]
