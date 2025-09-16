@@ -38,7 +38,7 @@ services:
     volumes:
       - ./hadoop/conf:/opt/hadoop-conf
       - spark_worker_conf:/opt/bitnami/spark/conf           # spark-defaults.conf 여기
-      - ./spark/build:/opt/spark-apps # https://drive.google.com/file/d/1SUddt7O3kB606hGEjBpa-KgDPGl0a-Up/view?usp=sharing
+      - ./spark/build:/opt/spark-apps # https://drive.google.com/file/d/1SUddt7O3kB606hGEjBpa-KgDPGl0a-Up/view?usp=sharing https://drive.google.com/file/d/11RhuutWeJqA4vcDpgc8qfCZIo5HIk6U4/view?usp=sharing
       - ./spark/conf/worker/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
     ports:
       - "${SPARK_WORKER_WEBUI}:${SPARK_WORKER_WEBUI}"   # 8081
