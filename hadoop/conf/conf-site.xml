@@ -2,6 +2,6 @@
 <configuration>
   <property>
     <name>fs.defaultFS</name>
-    <value>hdfs://nn:8020</value>
+    <value>hdfs://192.168.0.2:8020</value>
   </property>
 </configuration>
