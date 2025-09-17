@@ -48,12 +48,12 @@ services:
     networks: [hadoopnet]
     environment:
       - SPARK_MODE=master
-      - SPARK_PUBLIC_DNS=${SPARK_PUBLIC_DNS}
       - SPARK_MASTER_HOST=${SPARK_MASTER_HOST}
       - SPARK_MASTER_PORT=${SPARK_MASTER_PORT}
       - HADOOP_CONF_DIR=/opt/hadoop-conf
     volumes:
       - ./spark/conf/master:/opt/bitnami/spark/conf
+      - ./spark/build:/opt/spark-apps
       - ./hadoop/conf:/opt/hadoop-conf
     ports:
       - "${SPARK_MASTER_PORT}:${SPARK_MASTER_PORT}"  # 7077
@@ -72,7 +72,6 @@ services:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://${SPARK_MASTER_HOST}:${SPARK_MASTER_PORT}
       - SPARK_LOCAL_IP=${SPARK_LOCAL_IP}
-      - SPARK_PUBLIC_DNS=${SPARK_PUBLIC_DNS}
       - SPARK_WORKER_CORES=${SPARK_WORKER_CORES}
       - SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}
       - SPARK_WORKER_PORT=${SPARK_WORKER_PORT}
@@ -80,6 +79,7 @@ services:
       - HADOOP_CONF_DIR=/opt/hadoop-conf
     volumes:
       - ./spark/conf/worker:/opt/bitnami/spark/conf
+      - ./spark/build:/opt/spark-apps
       - ./hadoop/conf:/opt/hadoop-conf
     ports:
       - "${SPARK_WORKER_WEBUI}:${SPARK_WORKER_WEBUI}"   # 8081
@@ -89,11 +89,6 @@ services:
       - "${SPARK_EXECUTOR_RPC_PORT}:${SPARK_EXECUTOR_RPC_PORT}" # 6062
       - "${SPARK_WORKER_PORT}:${SPARK_WORKER_PORT}"             # 7078
     depends_on: [spark-master]
-    deploy:
-      resources:
-        limits:
-          cpus: "2"          # 마스터에서 워커는 작게
-          memory: 14g
     restart: unless-stopped
 
 volumes:
